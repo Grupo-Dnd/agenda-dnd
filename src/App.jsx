@@ -131,7 +131,7 @@ export default function App(){
   async function addBooking(formData){
     const{data,error}=await supabase.from("agendamentos").insert({
       entidade:formData.unidade, empresa_id:session.empresa_id||null,
-      empresa:formData.empresa, cnpj:formData.cnpj,
+      cnpj:formData.cnpj,
       perfil_solicitante:formData.perfil, operacao:PERFIS[formData.perfil].op,
       frete:PERFIS[formData.perfil].frete, data:formData.data, hora:formData.hora,
       fora_expediente:formData.foraExpediente, status:"pendente",
