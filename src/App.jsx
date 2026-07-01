@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { supabase } from './supabaseClient'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, CartesianGrid } from "recharts"
-import { Truck, Clock, CheckCircle2, XCircle, AlertTriangle, Send, ChevronLeft, ChevronRight, Building2, Phone, FileText, RotateCcw, BarChart3, Beaker, Wheat, Boxes, Hash, ClipboardCheck, Lock, MapPin, LogIn, LogOut, Flag, Scale, Paperclip, Search, Activity, ShieldCheck, Weight, TrendingUp, Target, Package, Mail, Eye, EyeOff } from "lucide-react"
+import { Truck, Clock, CheckCircle2, XCircle, AlertTriangle, Send, ChevronLeft, ChevronRight, Building2, Phone, FileText, RotateCcw, BarChart3, Beaker, Wheat, Boxes, Hash, ClipboardCheck, Lock, MapPin, LogIn, LogOut, Flag, Scale, Paperclip, Search, Activity, ShieldCheck, Weight, TrendingUp, Target, Package, Mail, Eye, EyeOff, Users, KeyRound, Plus, Power } from "lucide-react"
 
 const C = { navy:"#0B2A4A",navy2:"#11365C",orange:"#F47B20",green:"#2E9B4E",cyan:"#1BA0D7",light:"#F1F3F4",gray:"#6B7785",red:"#C0392B",purple:"#7E3FB5" }
 const SLOTS = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"]
@@ -24,9 +24,9 @@ const EMPRESAS = {
 }
 const ROLES = {
   cliente:{ label:"Cliente / Fornecedor",icon:Building2,color:C.cyan,tabs:["solicitar","acompanhar"],desc:"Agenda e acompanha apenas os próprios veículos" },
-  recebimento:{ label:"Recebimento DND",icon:ClipboardCheck,color:C.green,tabs:["solicitar","acompanhar","portaria","painel"],desc:"Gestão completa da agenda e da operação" },
+  recebimento:{ label:"Recebimento DND",icon:ClipboardCheck,color:C.green,tabs:["solicitar","acompanhar","portaria","clientes","painel"],desc:"Gestão completa da agenda e da operação" },
   portaria:{ label:"Portaria",icon:MapPin,color:C.navy2,tabs:["acompanhar","portaria"],desc:"Registra chegada, entrada, pesagem e saída" },
-  sop:{ label:"Gerência S&OP",icon:ShieldCheck,color:C.purple,tabs:["solicitar","acompanhar","portaria","painel"],desc:"Acesso total + autoriza fora do expediente" },
+  sop:{ label:"Gerência S&OP",icon:ShieldCheck,color:C.purple,tabs:["solicitar","acompanhar","portaria","clientes","painel"],desc:"Acesso total + autoriza fora do expediente" },
 }
 const ATIVOS = ["pendente","confirmado","reagendado","na_portaria","em_patio","operando"]
 const STAGES = [
@@ -92,17 +92,22 @@ export default function App(){
   const[cap,setCap]=useState(1)
   const[loaded,setLoaded]=useState(false)
   const[weekOffset,setWeekOffset]=useState(0)
+  const[recovery,setRecovery]=useState(false)
 
   useEffect(()=>{
     let mounted=true
+    const ehDefinirSenha=new URLSearchParams(window.location.search).has("definir-senha")
+    if(ehDefinirSenha){setRecovery(true);setLoaded(true)}
     supabase.auth.getSession().then(({data:{session:s}})=>{
       if(!mounted)return
+      if(ehDefinirSenha)return            // mostra a tela de senha, não entra no app
       if(s)loadUserData(s.user.id)
       else setLoaded(true)
     })
     const{data:{subscription}}=supabase.auth.onAuthStateChange(async(event,s)=>{
       if(!mounted)return
-      if(event==="SIGNED_IN"&&s){setLoaded(false);await loadUserData(s.user.id)}
+      if(event==="PASSWORD_RECOVERY"){setRecovery(true);setLoaded(true);return}
+      if(event==="SIGNED_IN"&&s){if(ehDefinirSenha)return;setLoaded(false);await loadUserData(s.user.id)}
       else if(event==="SIGNED_OUT"){setSession(null);setBookings([]);setLoaded(true)}
     })
     return()=>{mounted=false;subscription.unsubscribe()}
@@ -175,11 +180,13 @@ export default function App(){
 
   if(!loaded)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",fontFamily:"system-ui",color:C.gray}}>Carregando...</div>
 
+  if(recovery)return<div className="w-full" style={{fontFamily:"system-ui,sans-serif",color:C.navy}}><style>{KF}</style><DefinirSenha /></div>
+
   if(!session)return<div className="w-full" style={{fontFamily:"system-ui,sans-serif",color:C.navy}}><style>{KF}</style><Login /></div>
 
   const allowed=ROLES[session.role].tabs
   const activeTab=allowed.includes(tab)?tab:allowed[0]
-  const TABS=[["solicitar","Solicitar",Send],["acompanhar","Acompanhar",Activity],["portaria","Portaria",MapPin],["painel","Painel DND",BarChart3]].filter(([k])=>allowed.includes(k))
+  const TABS=[["solicitar","Solicitar",Send],["acompanhar","Acompanhar",Activity],["portaria","Portaria",MapPin],["clientes","Clientes",Users],["painel","Painel DND",BarChart3]].filter(([k])=>allowed.includes(k))
   const role=ROLES[session.role]
 
   return(
@@ -197,6 +204,7 @@ export default function App(){
         {activeTab==="solicitar"&&<Solicitar {...{weekDates,weekOffset,setWeekOffset,remaining,cap,bookings,addBooking,fixedEmpresa:session.role==="cliente"?session.empresa:""}}/>}
         {activeTab==="acompanhar"&&<Acompanhar bookings={bookings} filterEmpresa={session.role==="cliente"?session.empresa:null}/>}
         {activeTab==="portaria"&&<Portaria {...{bookings,updB}}/>}
+        {activeTab==="clientes"&&<Clientes/>}
         {activeTab==="painel"&&<Painel {...{bookings,cap,updateCap,updB,weekDates,weekOffset,setWeekOffset,canAuthorize:session.role==="sop"}}/>}
       </div>
       <div className="rounded-b-xl px-5 py-3 text-center text-xs font-semibold" style={{background:C.navy,color:"#fff"}}>🔒 "Se não está na agenda, não entra na DND."</div>
@@ -218,10 +226,9 @@ function Login(){
     try{
       let email=id.trim()
       if(!email.includes("@")){
-        const cnpj=email.replace(/\D/g,"")
-        const{data:emp}=await supabase.from("empresas").select("email").eq("cnpj",cnpj).single()
-        if(!emp){setErr("CNPJ não encontrado. Entre em contato com a DND.");setLoading(false);return}
-        email=emp.email
+        const{data:emailEnc}=await supabase.rpc("email_por_cnpj",{p_cnpj:email})
+        if(!emailEnc){setErr("CNPJ não encontrado. Entre em contato com a DND.");setLoading(false);return}
+        email=emailEnc
       }
       const{error:authErr}=await supabase.auth.signInWithPassword({email,password:pw})
       if(authErr)setErr("Senha incorreta. Verifique ou clique em 'Esqueci a senha'.")
@@ -233,12 +240,11 @@ function Login(){
     let email=id.trim()
     if(!email){setErr("Informe o CNPJ ou e-mail primeiro.");return}
     if(!email.includes("@")){
-      const cnpj=email.replace(/\D/g,"")
-      const{data:emp}=await supabase.from("empresas").select("email").eq("cnpj",cnpj).single()
-      if(!emp){setErr("CNPJ não encontrado.");return}
-      email=emp.email
+      const{data:emailEnc}=await supabase.rpc("email_por_cnpj",{p_cnpj:email})
+      if(!emailEnc){setErr("CNPJ não encontrado.");return}
+      email=emailEnc
     }
-    await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin})
+    await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${window.location.origin}/?definir-senha=1`})
     setForgotSent(true); setErr("")
   }
 
@@ -278,6 +284,131 @@ function Login(){
         </div>
       </div>
       <div className="rounded-b-xl px-5 py-3 text-center text-xs font-semibold" style={{background:C.navy,color:"#fff"}}>🔒 "Se não está na agenda, não entra na DND."</div>
+    </div>
+  )
+}
+
+// ── DefinirSenha (convite + reset) ────────────────────────
+function DefinirSenha(){
+  const[pw,setPw]=useState("");const[pw2,setPw2]=useState("")
+  const[show,setShow]=useState(false);const[err,setErr]=useState("");const[ok,setOk]=useState(false);const[loading,setLoading]=useState(false)
+  async function salvar(e){
+    e.preventDefault();setErr("")
+    if(pw.length<6){setErr("A senha precisa ter ao menos 6 caracteres.");return}
+    if(pw!==pw2){setErr("As senhas não conferem.");return}
+    setLoading(true)
+    const{error}=await supabase.auth.updateUser({password:pw})
+    setLoading(false)
+    if(error){setErr("Não foi possível salvar. O link pode ter expirado — peça um novo à DND.");return}
+    setOk(true)
+  }
+  return(
+    <div>
+      <BrandHeader/>
+      <div className="p-6" style={{background:C.light}}>
+        <div className="max-w-sm mx-auto bg-white rounded-xl shadow-sm p-6" style={{animation:"fadeUp .4s ease both"}}>
+          {ok?(
+            <div className="text-center p-2">
+              <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{background:"#E7F5EC"}}><CheckCircle2 size={30} color={C.green}/></div>
+              <h3 className="font-bold text-lg">Senha definida!</h3>
+              <p className="text-xs mt-1" style={{color:C.gray}}>Já pode acessar o portal.</p>
+              <button onClick={()=>window.location.replace(window.location.origin)} className="mt-4 w-full py-2.5 rounded-lg text-white text-sm font-semibold" style={{background:C.navy}}>Entrar no portal</button>
+            </div>
+          ):(
+            <form onSubmit={salvar} className="space-y-3">
+              <div className="flex items-center gap-2 mb-1"><KeyRound size={18} color={C.orange}/><h3 className="font-bold text-lg">Defina sua senha</h3></div>
+              <p className="text-xs" style={{color:C.gray}}>Crie uma senha para acessar o Portal Agenda DND/DBL.</p>
+              <label className="block"><span className="text-xs font-medium mb-1 block">Nova senha</span>
+                <div className="relative">
+                  <input type={show?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)} className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none pr-10" style={{borderColor:"#E3E7EB"}} required/>
+                  <button type="button" onClick={()=>setShow(s=>!s)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{color:C.gray}}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button>
+                </div>
+              </label>
+              <label className="block"><span className="text-xs font-medium mb-1 block">Confirme a senha</span>
+                <input type={show?"text":"password"} value={pw2} onChange={e=>setPw2(e.target.value)} className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none" style={{borderColor:"#E3E7EB"}} required/>
+              </label>
+              {err&&<p className="text-xs px-3 py-2 rounded-lg" style={{background:"#FBEAE8",color:C.red}}>{err}</p>}
+              <button type="submit" disabled={loading} className="w-full py-2.5 rounded-lg text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60" style={{background:C.navy}}>{loading?<><RotateCcw size={15} className="animate-spin"/> Salvando...</>:<><KeyRound size={15}/> Salvar senha</>}</button>
+            </form>
+          )}
+        </div>
+      </div>
+      <div className="rounded-b-xl px-5 py-3 text-center text-xs font-semibold" style={{background:C.navy,color:"#fff"}}>🔒 "Se não está na agenda, não entra na DND."</div>
+    </div>
+  )
+}
+
+// ── Clientes (admin) ──────────────────────────────────────
+function Clientes(){
+  const[lista,setLista]=useState([])
+  const[loading,setLoading]=useState(true)
+  const[form,setForm]=useState({razao_social:"",cnpj:"",email:""})
+  const[saving,setSaving]=useState(false)
+  const[msg,setMsg]=useState(null)
+  const[busca,setBusca]=useState("")
+  const upd=(k,v)=>setForm(f=>({...f,[k]:v}))
+
+  async function carregar(){
+    setLoading(true)
+    const{data}=await supabase.from("empresas").select("*").eq("tipo","cliente").order("razao_social")
+    setLista(data||[]);setLoading(false)
+  }
+  useEffect(()=>{carregar()},[])
+
+  async function cadastrar(){
+    if(!form.razao_social.trim()||!form.cnpj.trim()||!form.email.trim()){setMsg({t:"erro",x:"Preencha razão social, CNPJ e e-mail."});return}
+    setSaving(true);setMsg(null)
+    const{data,error}=await supabase.functions.invoke("criar-cliente",{body:form})
+    if(error){
+      let x="Erro ao cadastrar o cliente."
+      try{const j=await error.context.json();if(j?.error)x=j.error}catch{}
+      setMsg({t:"erro",x})
+    }else if(data?.error){setMsg({t:"erro",x:data.error})}
+    else{setMsg({t:"ok",x:`Cliente cadastrado. E-mail de definição de senha enviado para ${form.email}.`});setForm({razao_social:"",cnpj:"",email:""});carregar()}
+    setSaving(false)
+  }
+
+  async function toggleAtivo(emp){
+    const novo=!emp.ativo
+    setLista(prev=>prev.map(e=>e.id===emp.id?{...e,ativo:novo}:e))
+    const{error}=await supabase.from("empresas").update({ativo:novo}).eq("id",emp.id)
+    if(error){setLista(prev=>prev.map(e=>e.id===emp.id?{...e,ativo:!novo}:e));setMsg({t:"erro",x:"Não foi possível alterar o status — falta a policy de UPDATE em empresas."})}
+  }
+
+  const fmtCNPJ=c=>{const d=String(c||"").replace(/\D/g,"");return d.length===14?d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5"):c}
+  const filtrada=busca?lista.filter(e=>(e.razao_social||"").toLowerCase().includes(busca.toLowerCase())||(e.cnpj||"").includes(busca.replace(/\D/g,""))):lista
+
+  return(
+    <div>
+      <div className="bg-white rounded-xl p-5 shadow-sm mb-4">
+        <div className="flex items-center gap-2 mb-1"><Building2 size={18} color={C.cyan}/><h3 className="font-bold">Cadastrar novo cliente</h3></div>
+        <p className="text-xs mb-4" style={{color:C.gray}}>Cria o acesso e envia um e-mail para o cliente <b>definir a própria senha</b>. Login dele: CNPJ ou e-mail.</p>
+        <div className="grid sm:grid-cols-3 gap-3">
+          <label className="block"><span className="text-xs font-medium mb-1 block">Razão social</span><input value={form.razao_social} onChange={e=>upd("razao_social",e.target.value)} className="w-full px-3 py-2 rounded-lg border text-sm" style={{borderColor:"#E3E7EB"}}/></label>
+          <label className="block"><span className="text-xs font-medium mb-1 block">CNPJ</span><input value={form.cnpj} onChange={e=>upd("cnpj",e.target.value)} placeholder="00.000.000/0001-00" className="w-full px-3 py-2 rounded-lg border text-sm" style={{borderColor:"#E3E7EB"}}/></label>
+          <label className="block"><span className="text-xs font-medium mb-1 block">E-mail do cliente</span><input type="email" value={form.email} onChange={e=>upd("email",e.target.value)} className="w-full px-3 py-2 rounded-lg border text-sm" style={{borderColor:"#E3E7EB"}}/></label>
+        </div>
+        {msg&&<p className="text-xs px-3 py-2 rounded-lg mt-3" style={{background:msg.t==="ok"?"#E7F5EC":"#FBEAE8",color:msg.t==="ok"?C.green:C.red}}>{msg.x}</p>}
+        <div className="flex justify-end mt-4"><button onClick={cadastrar} disabled={saving} className="px-5 py-2.5 rounded-lg text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-60" style={{background:C.navy}}>{saving?<><RotateCcw size={15} className="animate-spin"/> Cadastrando...</>:<><Plus size={15}/> Cadastrar e enviar convite</>}</button></div>
+      </div>
+
+      <div className="bg-white rounded-xl p-3 shadow-sm mb-3"><div className="flex items-center gap-2 px-3 py-2 rounded-lg border" style={{borderColor:"#E3E7EB"}}><Search size={15} color={C.gray}/><input placeholder="Buscar por razão social ou CNPJ" value={busca} onChange={e=>setBusca(e.target.value)} className="flex-1 text-sm outline-none"/></div></div>
+
+      <div className="text-xs font-semibold mb-2" style={{color:C.gray}}>CLIENTES CADASTRADOS · {filtrada.length}</div>
+      <div className="space-y-2">
+        {loading&&<div className="bg-white rounded-xl p-6 text-center text-sm shadow-sm" style={{color:C.gray}}>Carregando...</div>}
+        {!loading&&filtrada.length===0&&<div className="bg-white rounded-xl p-6 text-center text-sm shadow-sm" style={{color:C.gray}}>Nenhum cliente cadastrado ainda.</div>}
+        {filtrada.map(e=>(
+          <div key={e.id} className="bg-white rounded-xl p-3 shadow-sm flex items-center justify-between gap-3 flex-wrap transition-all hover:shadow-md">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg p-2" style={{background:(e.ativo?C.green:C.gray)+"15"}}><Building2 size={18} color={e.ativo?C.green:C.gray}/></div>
+              <div><div className="font-semibold text-sm flex items-center gap-2 flex-wrap">{e.razao_social}<span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{background:e.ativo?"#E7F5EC":"#EDEFF1",color:e.ativo?C.green:C.gray}}>{e.ativo?"Ativo":"Inativo"}</span></div>
+                <div className="text-[11px] mt-0.5" style={{color:C.gray}}>{fmtCNPJ(e.cnpj)} · {e.email}</div></div>
+            </div>
+            <button onClick={()=>toggleAtivo(e)} className="px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all hover:brightness-95" style={{background:(e.ativo?C.red:C.green)+"15",color:e.ativo?C.red:C.green}}><Power size={13}/> {e.ativo?"Desativar":"Reativar"}</button>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
