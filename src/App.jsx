@@ -208,7 +208,7 @@ export default function App(){
         {activeTab==="clientes"&&<Clientes/>}
         {activeTab==="painel"&&<Painel {...{bookings,cap,updateCap,updB,weekDates,weekOffset,setWeekOffset,canAuthorize:session.role==="sop"}}/>}
       </div>
-      <div className="rounded-b-xl px-5 py-3 text-center text-xs font-semibold" style={{background:C.navy,color:"#fff"}}>🔒 "Se não está na agenda, não entra na DND."</div>
+      <div className="rounded-b-xl px-5 py-3 text-center text-xs font-semibold" style={{background:C.navy,color:"#fff"}}>Agendar é cuidar do seu tempo e do nosso pátio — vamos juntos.</div>
     </div>
   )
 }
@@ -349,7 +349,7 @@ function DefinirSenha(){
           )}
         </div>
       </div>
-      <div className="rounded-b-xl px-5 py-3 text-center text-xs font-semibold" style={{background:C.navy,color:"#fff"}}>🔒 "Se não está na agenda, não entra na DND."</div>
+      <div className="rounded-b-xl px-5 py-3 text-center text-xs font-semibold" style={{background:C.navy,color:"#fff"}}>Agendar é cuidar do seu tempo e do nosso pátio — vamos juntos.</div>
     </div>
   )
 }
@@ -432,19 +432,23 @@ function Clientes(){
 // ── BrandHeader ───────────────────────────────────────────
 function BrandHeader(){
   return(
-    <div className="rounded-t-xl overflow-hidden">
+    <div className="rounded-t-xl overflow-hidden" style={{position:"relative"}}>
       <div className="h-1.5 w-full" style={{background:"linear-gradient(90deg,#1E73BE 0%,#15518A 50%,#0D3A66 100%)"}}/>
-      <div className="px-5 pt-4 pb-5" style={{background:"linear-gradient(135deg,#0f172a 0%,#0D3A66 55%,#15518A 100%)"}}>
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg p-2" style={{background:"rgba(255,255,255,0.14)"}}><Truck size={22} color="#fff"/></div>
-            <div><div className="text-white font-bold text-lg leading-tight">Agenda DND/DBL</div><div className="text-xs" style={{color:"#AFC6DC"}}>Portal de Agendamento de Carga e Descarga</div></div>
+      <div className="px-5 pt-4 pb-5" style={{position:"relative"}}>
+        <div style={{position:"absolute",inset:0,background:`url(${capaBg}) center/cover no-repeat`}}/>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(120deg,rgba(13,58,102,.93) 0%,rgba(17,67,111,.82) 55%,rgba(21,81,138,.72) 100%)"}}/>
+        <div style={{position:"relative"}}>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg p-2" style={{background:"rgba(255,255,255,0.14)"}}><Truck size={22} color="#fff"/></div>
+              <div><div className="text-white font-bold text-lg leading-tight">Agenda DND/DBL</div><div className="text-xs" style={{color:"#AFC6DC"}}>Portal de Agendamento de Carga e Descarga</div></div>
+            </div>
+            <div className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-full" style={{background:"rgba(255,255,255,0.12)",color:"#DCE8F2"}}><Clock size={13}/> Seg–Sex · 08:00–17:00</div>
           </div>
-          <div className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-full" style={{background:"rgba(255,255,255,0.12)",color:"#DCE8F2"}}><Clock size={13}/> Seg–Sex · 08:00–17:00</div>
-        </div>
-        <p className="text-white font-semibold text-sm mb-3 max-w-2xl">Empresa referência nos setores sucroenergético, industrial, tratamento de água e agrícola.</p>
-        <div className="inline-flex flex-wrap gap-x-4 gap-y-1.5 bg-white rounded-full px-4 py-2 shadow-md">
-          {Object.values(ENTIDADES).map(u=><span key={u.label} className="flex items-center gap-1.5 text-xs font-bold" style={{color:u.color}}><span className="w-2 h-2 rounded-full" style={{background:u.color}}/>{u.label}</span>)}
+          <p className="text-white font-semibold text-sm mb-3 max-w-2xl">Empresa referência nos setores sucroenergético, industrial, tratamento de água e agrícola.</p>
+          <div className="inline-flex flex-wrap gap-x-4 gap-y-1.5 bg-white rounded-full px-4 py-2 shadow-md">
+            {Object.values(ENTIDADES).map(u=><span key={u.label} className="flex items-center gap-1.5 text-xs font-bold" style={{color:u.color}}><span className="w-2 h-2 rounded-full" style={{background:u.color}}/>{u.label}</span>)}
+          </div>
         </div>
       </div>
     </div>
@@ -699,7 +703,7 @@ function Portaria({bookings,updB}){
   const fila=bookings.filter(b=>["confirmado","reagendado","na_portaria","em_patio","operando"].includes(b.status)).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
   return(
     <div>
-      <div className="bg-white rounded-xl p-3 shadow-sm mb-4 text-xs flex items-center gap-2" style={{color:C.gray}}><Lock size={14} color={C.orange}/> A portaria só libera veículos com <b style={{color:C.navy}}>&nbsp;agendamento confirmado</b>.</div>
+      <div className="bg-white rounded-xl p-3 shadow-sm mb-4 text-xs flex items-center gap-2" style={{color:C.gray}}><Lock size={14} color={C.orange}/> A portaria libera a entrada assim que o <b style={{color:C.navy}}>&nbsp;agendamento está confirmado</b>.</div>
       <div className="space-y-2">{fila.length===0&&<div className="bg-white rounded-xl p-6 text-center text-sm shadow-sm" style={{color:C.gray}}>Nenhum veículo previsto no momento.</div>}{fila.map(b=><PortariaCard key={b.id} b={b} updB={updB}/>)}</div>
     </div>
   )
@@ -809,7 +813,7 @@ function Painel({bookings,cap,updateCap,updB,weekDates,weekOffset,setWeekOffset,
       <div className="bg-white rounded-xl p-3 shadow-sm mb-4"><div className="flex items-center justify-between flex-wrap gap-2">
         <span className="text-xs font-semibold flex items-center gap-1"><Lock size={13} color={C.gray}/> Docas por horário (agenda compartilhada DND + DBL)</span>
         <label className="flex items-center gap-2 text-xs"><span>Veículos por horário</span><input type="number" min={1} max={9} value={cap} onChange={e=>updateCap(Math.max(1,parseInt(e.target.value)||1))} className="w-14 px-2 py-1 rounded border text-center" style={{borderColor:"#E3E7EB"}}/></label>
-      </div><div className="text-[11px] mt-1.5" style={{color:C.gray}}>A agenda é única: agendar um horário trava esse horário para todas as operações.</div></div>
+      </div><div className="text-[11px] mt-1.5" style={{color:C.gray}}>Agenda compartilhada (DND + DBL): cada horário reservado vale para todas as operações.</div></div>
       <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
         <div className="flex gap-1.5 flex-wrap">{[["pendente","Pendentes"],["fora","Fora expediente"],["ativos","Ativos"],["finalizado","Finalizados"],["todos","Todos"]].map(([k,l])=><button key={k} onClick={()=>setFiltro(k)} className="px-3 py-1.5 rounded-full text-xs font-semibold transition-colors" style={{background:filtro===k?C.navy:"#fff",color:filtro===k?"#fff":C.gray,border:"1px solid #E3E7EB"}}>{l}</button>)}</div>
         <div className="flex items-center gap-2 text-xs">
