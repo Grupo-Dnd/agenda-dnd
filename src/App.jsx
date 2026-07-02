@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { supabase } from './supabaseClient'
+import capaBg from './capa.jpg'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, CartesianGrid } from "recharts"
 import { Truck, Clock, CheckCircle2, XCircle, AlertTriangle, Send, ChevronLeft, ChevronRight, Building2, Phone, FileText, RotateCcw, BarChart3, Beaker, Wheat, Boxes, Hash, ClipboardCheck, Lock, MapPin, LogIn, LogOut, Flag, Scale, Paperclip, Search, Activity, ShieldCheck, Weight, TrendingUp, Target, Package, Mail, Eye, EyeOff, Users, KeyRound, Plus, Power } from "lucide-react"
 
@@ -249,41 +250,56 @@ function Login(){
   }
 
   return(
-    <div>
-      <BrandHeader/>
-      <div className="p-6" style={{background:C.light}}>
-        <div className="max-w-sm mx-auto bg-white rounded-xl shadow-sm p-6" style={{animation:"fadeUp .4s ease both"}}>
-          <h3 className="font-bold text-lg mb-1">Entrar no portal</h3>
-          <p className="text-xs mb-4" style={{color:C.gray}}>Use seu <b>CNPJ</b> como identificador. Acesso interno: use seu e-mail.</p>
+    <div style={{position:"relative",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:28,overflow:"hidden",fontFamily:"system-ui,sans-serif"}}>
+      <div style={{position:"absolute",inset:0,background:`url(${capaBg}) center/cover no-repeat`,transform:"scale(1.02)"}}/>
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(120deg,rgba(13,58,102,.86) 0%,rgba(17,67,111,.62) 45%,rgba(21,81,138,.42) 100%)"}}/>
+      <div className="hidden md:block" style={{position:"absolute",left:32,bottom:28,color:"#fff",maxWidth:"52%",zIndex:1,textShadow:"0 2px 8px rgba(0,0,0,.4)"}}>
+        <div style={{fontSize:13,opacity:.9}}>Portal de Agendamento · Grupo DND / DBL Agro</div>
+        <div style={{fontSize:30,fontWeight:800,lineHeight:1.1,marginTop:4}}>Carregamentos &amp; Descarregamentos</div>
+      </div>
+      <div style={{position:"relative",width:"100%",maxWidth:410,background:"rgba(255,255,255,.97)",borderRadius:18,overflow:"hidden",boxShadow:"0 30px 70px rgba(0,0,0,.45)",animation:"fadeUp .4s ease both"}}>
+        <div style={{height:6,background:"linear-gradient(90deg,#1E73BE,#15518A 50%,#0D3A66)"}}/>
+        <div style={{padding:"30px 30px 22px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <img src="https://ohpmbslsnxzepcasmdte.supabase.co/storage/v1/object/public/marca/logogrupodnd.png" alt="DND" style={{height:44}}/>
+            <div><div style={{fontWeight:800,color:"#11436F",fontSize:19,lineHeight:1.1}}>Agendamento</div><div style={{fontSize:12,color:"#64748B"}}>Grupo DND / DBL Agro</div></div>
+          </div>
+          <div style={{marginTop:16,fontSize:12,fontWeight:700,letterSpacing:".4px",color:"#1E73BE",textTransform:"uppercase"}}>Entrar no portal</div>
+          <p style={{color:"#64748B",fontSize:13,margin:"4px 0 16px"}}>Acesse com seu <b>CNPJ</b> e senha. Acesso interno: use seu e-mail.</p>
           {forgotSent?(
-            <div className="text-center p-4 rounded-lg" style={{background:"#E7F5EC",color:C.green}}>
-              <CheckCircle2 size={32} className="mx-auto mb-2"/>
-              <p className="font-semibold">E-mail de redefinição enviado!</p>
-              <p className="text-xs mt-1">Verifique sua caixa de entrada.</p>
-              <button className="mt-3 text-xs underline" style={{color:C.navy}} onClick={()=>setForgotSent(false)}>Voltar ao login</button>
+            <div style={{textAlign:"center",padding:16,borderRadius:10,background:"#E7F5EC",color:C.green}}>
+              <CheckCircle2 size={32} style={{margin:"0 auto 8px"}}/>
+              <p style={{fontWeight:600}}>E-mail de redefinição enviado!</p>
+              <p style={{fontSize:12,marginTop:4}}>Verifique sua caixa de entrada.</p>
+              <button style={{marginTop:12,fontSize:12,textDecoration:"underline",color:C.navy,background:"none",border:0,cursor:"pointer"}} onClick={()=>setForgotSent(false)}>Voltar ao login</button>
             </div>
           ):(
-            <form onSubmit={handleLogin} className="space-y-3">
-              <label className="block"><span className="text-xs font-medium mb-1 block">CNPJ <span style={{color:C.gray,fontWeight:400}}>(ou e-mail para acesso interno)</span></span>
-                <input value={id} onChange={e=>setId(e.target.value)} placeholder="00.000.000/0001-00" className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none" style={{borderColor:id?"#E3E7EB":"#E3E7EB"}} required/>
-              </label>
-              <label className="block"><span className="text-xs font-medium mb-1 block">Senha</span>
-                <div className="relative">
-                  <input type={showPw?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)} placeholder="Digite sua senha" className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none pr-10" style={{borderColor:"#E3E7EB"}} required/>
-                  <button type="button" onClick={()=>setShowPw(s=>!s)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{color:C.gray}}>{showPw?<EyeOff size={16}/>:<Eye size={16}/>}</button>
-                </div>
-              </label>
-              {err&&<p className="text-xs px-3 py-2 rounded-lg" style={{background:"#FBEAE8",color:C.red}}>{err}</p>}
-              <button type="submit" disabled={loading} className="w-full py-2.5 rounded-lg text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60" style={{background:C.navy}}>
+            <form onSubmit={handleLogin}>
+              <label style={{display:"block",fontSize:12,fontWeight:600,color:"#334155",marginBottom:5}}>CNPJ (ou e-mail para acesso interno)</label>
+              <input value={id} onChange={e=>setId(e.target.value)} placeholder="00.000.000/0001-00" required style={{width:"100%",border:"1px solid #E3E7EB",borderRadius:10,padding:"11px 12px",fontSize:14,marginBottom:13,outline:"none"}}/>
+              <label style={{display:"block",fontSize:12,fontWeight:600,color:"#334155",marginBottom:5}}>Senha</label>
+              <div style={{position:"relative",marginBottom:13}}>
+                <input type={showPw?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)} placeholder="Digite sua senha" required style={{width:"100%",border:"1px solid #E3E7EB",borderRadius:10,padding:"11px 40px 11px 12px",fontSize:14,outline:"none"}}/>
+                <button type="button" onClick={()=>setShowPw(s=>!s)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#64748B",background:"none",border:0,cursor:"pointer"}}>{showPw?<EyeOff size={16}/>:<Eye size={16}/>}</button>
+              </div>
+              {err&&<p style={{fontSize:12,padding:"8px 12px",borderRadius:10,background:"#FBEAE8",color:C.red,marginBottom:10}}>{err}</p>}
+              <button type="submit" disabled={loading} style={{width:"100%",background:"#1E73BE",color:"#fff",border:0,borderRadius:10,padding:12,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:loading?.6:1}}>
                 {loading?<><RotateCcw size={15} className="animate-spin"/> Entrando...</>:<><LogIn size={15}/> Entrar</>}
               </button>
-              <button type="button" onClick={handleForgot} className="w-full text-xs text-center py-1" style={{color:C.gray}}>Esqueci a senha</button>
+              <button type="button" onClick={handleForgot} style={{display:"block",width:"100%",textAlign:"center",color:"#1E73BE",fontSize:12,marginTop:11,background:"none",border:0,cursor:"pointer"}}>Esqueci a senha</button>
             </form>
           )}
-          <p className="text-[11px] mt-4 text-center leading-relaxed" style={{color:C.gray}}>Primeiro acesso? A DND vai enviar seu e-mail de definição de senha.</p>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginTop:20,paddingTop:15,borderTop:"1px solid #eef1f4"}}>
+            {["dndquimica","dndagrociencia","dndaguas"].map(n=>(
+              <span key={n} style={{width:38,height:38,borderRadius:"50%",background:"#fff",border:"1px solid #e8edf2",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 2px rgba(0,0,0,.06)"}}>
+                <img src={`https://ohpmbslsnxzepcasmdte.supabase.co/storage/v1/object/public/marca/${n}.png`} alt={n} style={{width:26,height:26,objectFit:"contain",display:"block"}}/>
+              </span>
+            ))}
+            <span style={{marginLeft:"auto",fontSize:11,color:"#94a3b8"}}>grupodnd.com.br</span>
+          </div>
         </div>
+        <div style={{background:"#0D3A66",color:"#fff",textAlign:"center",fontSize:12,fontWeight:700,padding:10}}>Agendar é cuidar do seu tempo e do nosso pátio — vamos juntos.</div>
       </div>
-      <div className="rounded-b-xl px-5 py-3 text-center text-xs font-semibold" style={{background:C.navy,color:"#fff"}}>🔒 "Se não está na agenda, não entra na DND."</div>
     </div>
   )
 }
