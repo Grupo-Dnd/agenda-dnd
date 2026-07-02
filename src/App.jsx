@@ -3,13 +3,13 @@ import { supabase } from './supabaseClient'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, CartesianGrid } from "recharts"
 import { Truck, Clock, CheckCircle2, XCircle, AlertTriangle, Send, ChevronLeft, ChevronRight, Building2, Phone, FileText, RotateCcw, BarChart3, Beaker, Wheat, Boxes, Hash, ClipboardCheck, Lock, MapPin, LogIn, LogOut, Flag, Scale, Paperclip, Search, Activity, ShieldCheck, Weight, TrendingUp, Target, Package, Mail, Eye, EyeOff, Users, KeyRound, Plus, Power } from "lucide-react"
 
-const C = { navy:"#0B2A4A",navy2:"#11365C",orange:"#F47B20",green:"#2E9B4E",cyan:"#1BA0D7",light:"#F1F3F4",gray:"#6B7785",red:"#C0392B",purple:"#7E3FB5" }
+const C = { navy:"#11436F",navy2:"#1E73BE",orange:"#1E73BE",green:"#059669",cyan:"#2C7BE5",light:"#F1F5F9",gray:"#64748B",red:"#DC2626",purple:"#7E3FB5" }
 const SLOTS = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"]
 const EXTRA_SLOTS = ["06:00","07:00","17:00","18:00","19:00"]
 const DIAS = ["Seg","Ter","Qua","Qui","Sex"]
 const TIPOS_DESCARGA = ["Empilhadeira","Paleteira","Manual","Bomba (granel)","Guindaste / Munck"]
 const ENTIDADES = {
-  dnd:{ label:"DND",icon:Beaker,color:"#11365C",cnpj:"",nota:"Química, Águas e Biotech" },
+  dnd:{ label:"DND",icon:Beaker,color:"#15518A",cnpj:"",nota:"Química, Águas e Biotech" },
   dbl:{ label:"DBL",icon:Wheat,color:"#2E9B4E",cnpj:"",nota:"" },
 }
 const PERFIS = {
@@ -36,9 +36,9 @@ const STAGES = [
 ]
 function stageIdx(s){ if(s==="reagendado")return 1; const i=STAGES.findIndex(x=>x.k===s); return i<0?0:i }
 const STATUS_META = {
-  pendente:{label:"Pendente",color:C.orange,bg:"#FDF0E4"},confirmado:{label:"Confirmado",color:C.green,bg:"#E7F5EC"},
+  pendente:{label:"Pendente",color:"#B45309",bg:"#FEF3C7"},confirmado:{label:"Confirmado",color:C.green,bg:"#E7F5EC"},
   reagendado:{label:"Reagendado",color:C.cyan,bg:"#E4F4FB"},na_portaria:{label:"Na portaria",color:"#2C7BE5",bg:"#E6F0FC"},
-  em_patio:{label:"No pátio",color:C.navy2,bg:"#E5EAF1"},operando:{label:"Operando",color:C.orange,bg:"#FDF0E4"},
+  em_patio:{label:"No pátio",color:C.navy2,bg:"#E5EAF1"},operando:{label:"Operando",color:C.orange,bg:"#E4EEF8"},
   finalizado:{label:"Finalizado",color:C.green,bg:"#E7F5EC"},cancelado:{label:"Cancelado",color:C.gray,bg:"#EDEFF1"},
   noshow:{label:"No-show",color:C.red,bg:"#FBEAE8"},
 }
@@ -190,7 +190,7 @@ export default function App(){
   const role=ROLES[session.role]
 
   return(
-    <div className="w-full" style={{fontFamily:"system-ui,sans-serif",color:C.navy}}>
+    <div style={{fontFamily:"system-ui,sans-serif",color:C.navy,width:"90%",maxWidth:1600,margin:"12px auto 24px"}}>
       <style>{KF}</style>
       <BrandHeader/>
       <div className="flex items-center justify-between px-5 py-2 text-xs flex-wrap gap-2" style={{background:"#fff",borderBottom:"1px solid #E3E7EB"}}>
@@ -417,8 +417,8 @@ function Clientes(){
 function BrandHeader(){
   return(
     <div className="rounded-t-xl overflow-hidden">
-      <div className="h-1.5 w-full" style={{background:"linear-gradient(90deg,#2E9B4E 0%,#1BA0D7 50%,#0B2A4A 100%)"}}/>
-      <div className="px-5 pt-4 pb-5" style={{background:"linear-gradient(135deg,#0B2A4A 0%,#15406B 50%,#1E6FA8 100%)"}}>
+      <div className="h-1.5 w-full" style={{background:"linear-gradient(90deg,#1E73BE 0%,#15518A 50%,#0D3A66 100%)"}}/>
+      <div className="px-5 pt-4 pb-5" style={{background:"linear-gradient(135deg,#0f172a 0%,#0D3A66 55%,#15518A 100%)"}}>
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <div className="flex items-center gap-3">
             <div className="rounded-lg p-2" style={{background:"rgba(255,255,255,0.14)"}}><Truck size={22} color="#fff"/></div>
@@ -563,12 +563,12 @@ function Solicitar({weekDates,weekOffset,setWeekOffset,remaining,cap,bookings,ad
             <div className="text-xs font-semibold mb-2 flex items-center gap-1"><Boxes size={13} color={C.gray}/> Dados da carga</div>
             <div className="grid sm:grid-cols-2 gap-3">
               <label className="block"><span className="text-xs font-medium mb-1 block">Tipo de descarregamento</span>
-                <select value={form.tipoDescarregamento} onChange={e=>upd("tipoDescarregamento",e.target.value)} className="w-full px-3 py-2 rounded-lg border text-sm" style={{borderColor:form.tipoDescarregamento?"#E3E7EB":"#F0C9A8"}}><option value="">Selecione...</option>{TIPOS_DESCARGA.map(t=><option key={t}>{t}</option>)}</select></label>
+                <select value={form.tipoDescarregamento} onChange={e=>upd("tipoDescarregamento",e.target.value)} className="w-full px-3 py-2 rounded-lg border text-sm" style={{borderColor:form.tipoDescarregamento?"#E3E7EB":"#BFD3E6"}}><option value="">Selecione...</option>{TIPOS_DESCARGA.map(t=><option key={t}>{t}</option>)}</select></label>
               <label className="block"><span className="text-xs font-medium mb-1 flex items-center gap-1"><Weight size={12} color={C.gray}/> Peso total (kg)</span>
-                <input type="number" value={form.pesoKg} onChange={e=>upd("pesoKg",e.target.value)} className="w-full px-3 py-2 rounded-lg border text-sm" style={{borderColor:form.pesoKg?"#E3E7EB":"#F0C9A8"}}/></label>
+                <input type="number" value={form.pesoKg} onChange={e=>upd("pesoKg",e.target.value)} className="w-full px-3 py-2 rounded-lg border text-sm" style={{borderColor:form.pesoKg?"#E3E7EB":"#BFD3E6"}}/></label>
               <label className="flex items-center gap-2 text-sm font-medium pt-1"><input type="checkbox" checked={form.granel} onChange={e=>setForm(f=>({...f,granel:e.target.checked,volumes:e.target.checked?"":f.volumes}))}/> Produto a granel</label>
               <label className="block"><span className="text-xs font-medium mb-1 block">Qtd de volumes</span>
-                <input type="number" disabled={form.granel} value={form.granel?"":form.volumes} placeholder={form.granel?"N/A (granel)":""} onChange={e=>upd("volumes",e.target.value)} className="w-full px-3 py-2 rounded-lg border text-sm disabled:bg-gray-100" style={{borderColor:(form.granel||form.volumes)?"#E3E7EB":"#F0C9A8"}}/></label>
+                <input type="number" disabled={form.granel} value={form.granel?"":form.volumes} placeholder={form.granel?"N/A (granel)":""} onChange={e=>upd("volumes",e.target.value)} className="w-full px-3 py-2 rounded-lg border text-sm disabled:bg-gray-100" style={{borderColor:(form.granel||form.volumes)?"#E3E7EB":"#BFD3E6"}}/></label>
             </div>
           </div>
           <div className="flex justify-between mt-5">
@@ -840,7 +840,7 @@ function StepDots({step}){
     </div>)})}
   </div>)
 }
-function Field({label,icon:I,v,on,disabled}){return<label className="block"><span className="text-xs font-medium flex items-center gap-1 mb-1" style={{color:C.navy}}><I size={13} color={C.gray}/> {label}{disabled&&<Lock size={10} color={C.gray}/>}</span><input value={v} onChange={e=>on(e.target.value)} disabled={disabled} readOnly={disabled} className="w-full px-3 py-2 rounded-lg text-sm outline-none border disabled:bg-gray-100" style={{borderColor:v?"#E3E7EB":"#F0C9A8"}}/></label>}
-function FileField({label,v,on}){return(<label className="block cursor-pointer"><span className="text-xs font-medium flex items-center gap-1 mb-1" style={{color:C.navy}}><Paperclip size={13} color={C.gray}/> {label}</span><div className="w-full px-3 py-2 rounded-lg text-sm border flex items-center justify-between" style={{borderColor:v?"#E3E7EB":"#F0C9A8",color:v?C.navy:C.gray}}><span className="truncate">{v||"Selecionar arquivo..."}</span><Paperclip size={14} color={C.gray}/><input type="file" className="hidden" onChange={e=>on(e.target.files?.[0]?.name||"")}/></div></label>)}
+function Field({label,icon:I,v,on,disabled}){return<label className="block"><span className="text-xs font-medium flex items-center gap-1 mb-1" style={{color:C.navy}}><I size={13} color={C.gray}/> {label}{disabled&&<Lock size={10} color={C.gray}/>}</span><input value={v} onChange={e=>on(e.target.value)} disabled={disabled} readOnly={disabled} className="w-full px-3 py-2 rounded-lg text-sm outline-none border disabled:bg-gray-100" style={{borderColor:v?"#E3E7EB":"#BFD3E6"}}/></label>}
+function FileField({label,v,on}){return(<label className="block cursor-pointer"><span className="text-xs font-medium flex items-center gap-1 mb-1" style={{color:C.navy}}><Paperclip size={13} color={C.gray}/> {label}</span><div className="w-full px-3 py-2 rounded-lg text-sm border flex items-center justify-between" style={{borderColor:v?"#E3E7EB":"#BFD3E6",color:v?C.navy:C.gray}}><span className="truncate">{v||"Selecionar arquivo..."}</span><Paperclip size={14} color={C.gray}/><input type="file" className="hidden" onChange={e=>on(e.target.files?.[0]?.name||"")}/></div></label>)}
 function Row({k,v}){return<div className="flex justify-between py-1 text-sm border-b last:border-0" style={{borderColor:"#E3E7EB"}}><span style={{color:C.gray}}>{k}</span><span className="font-medium text-right ml-3">{v||"—"}</span></div>}
 function Btn({onClick,color,icon:I,children}){return<button onClick={onClick} className="px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all hover:brightness-95" style={{background:color+"15",color}}><I size={13}/> {children}</button>}
