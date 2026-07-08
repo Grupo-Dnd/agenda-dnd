@@ -83,7 +83,7 @@ function fromDB(b){
   }
 }
 
-const KF=`@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@keyframes pulseSoft{0%,100%{opacity:1}50%{opacity:.55}}`
+const KF=`@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@keyframes pulseSoft{0%,100%{opacity:1}50%{opacity:.55}}.dnd-primary{transition:filter .15s}.dnd-primary:hover{filter:brightness(1.1)}`
 
 // ── App ───────────────────────────────────────────────────
 export default function App(){
@@ -191,7 +191,7 @@ export default function App(){
   const role=ROLES[session.role]
 
   return(
-    <div style={{fontFamily:"system-ui,sans-serif",color:C.navy,width:"90%",maxWidth:1600,margin:"12px auto 24px"}}>
+    <div style={{fontFamily:"system-ui,sans-serif",color:C.navy,width:"90%",maxWidth:1800,margin:"12px auto 24px"}}>
       <style>{KF}</style>
       <BrandHeader/>
       <div className="flex items-center justify-between px-5 py-2 text-xs flex-wrap gap-2" style={{background:"#fff",borderBottom:"1px solid #E3E7EB"}}>
@@ -283,7 +283,7 @@ function Login(){
                 <button type="button" onClick={()=>setShowPw(s=>!s)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#64748B",background:"none",border:0,cursor:"pointer"}}>{showPw?<EyeOff size={16}/>:<Eye size={16}/>}</button>
               </div>
               {err&&<p style={{fontSize:12,padding:"8px 12px",borderRadius:10,background:"#FBEAE8",color:C.red,marginBottom:10}}>{err}</p>}
-              <button type="submit" disabled={loading} style={{width:"100%",background:"#1E73BE",color:"#fff",border:0,borderRadius:10,padding:12,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:loading?.6:1}}>
+              <button type="submit" disabled={loading} className="dnd-primary" style={{width:"100%",background:"#1E73BE",color:"#fff",border:0,borderRadius:10,padding:12,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:loading?.6:1}}>
                 {loading?<><RotateCcw size={15} className="animate-spin"/> Entrando...</>:<><LogIn size={15}/> Entrar</>}
               </button>
               <button type="button" onClick={handleForgot} style={{display:"block",width:"100%",textAlign:"center",color:"#1E73BE",fontSize:12,marginTop:11,background:"none",border:0,cursor:"pointer"}}>Esqueci a senha</button>
