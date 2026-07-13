@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react"
 import { supabase } from './supabaseClient'
+import { createClient } from '@supabase/supabase-js'
 import capaBg from './capa.jpg'
+
+// 2º Supabase (somente leitura) — Portaria/Recebimento/pedidos (projeto "exub"), mesmo padrão do Recebimento.
+const sbPort = createClient(
+  "https://exubsoqdtkgklicdwitv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4dWJzb3FkdGtna2xpY2R3aXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTk3NDgsImV4cCI6MjA5NTQ3NTc0OH0.eXGRABGCVW8GYSXJidQE3XtMu-PYFPTKDaBsJTTp6vs",
+  { auth: { persistSession: false } }
+)
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, CartesianGrid } from "recharts"
 import { Truck, Clock, CheckCircle2, XCircle, AlertTriangle, Send, ChevronLeft, ChevronRight, Building2, Phone, FileText, RotateCcw, BarChart3, Beaker, Wheat, Boxes, Hash, ClipboardCheck, Lock, MapPin, LogIn, LogOut, Flag, Scale, Paperclip, Search, Activity, ShieldCheck, Weight, TrendingUp, Target, Package, Mail, Eye, EyeOff, Users, KeyRound, Plus, Power } from "lucide-react"
 
@@ -701,9 +709,33 @@ function TrackCard({b}){
 // ── Portaria ──────────────────────────────────────────────
 function Portaria({bookings,updB}){
   const fila=bookings.filter(b=>["confirmado","reagendado","na_portaria","em_patio","operando"].includes(b.status)).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
+  const[sync,setSync]=useState({busy:false,msg:""})
+  async function sincronizar(auto){
+    const ativos=bookings.filter(b=>b.placa&&!b.saida&&["confirmado","reagendado","na_portaria","em_patio"].includes(b.status))
+    if(!ativos.length){ if(!auto)setSync({busy:false,msg:"Nenhum veículo previsto para sincronizar."}); return }
+    setSync({busy:true,msg:""})
+    try{
+      const norm=p=>(p||"").toUpperCase().replace(/[^A-Z0-9]/g,"")
+      const datas=[...new Set(ativos.map(b=>b.data))]
+      const{data,error}=await sbPort.from("vw_portaria_liberados").select("veiculo_placa,data_entrada,hora_entrada").in("data_entrada",datas).not("veiculo_placa","is",null)
+      if(error)throw error
+      const idx={};(data||[]).forEach(r=>{ idx[norm(r.veiculo_placa)+"|"+r.data_entrada]=r })
+      let n=0
+      for(const b of ativos){
+        const r=idx[norm(b.placa)+"|"+b.data]
+        if(r&&r.hora_entrada&&!b.chegadaReal){ const hm=String(r.hora_entrada).slice(0,5); await updB(b.id,{status:"em_patio",chegadaReal:hm,entrada:hm}); n++ }
+      }
+      setSync({busy:false,msg:n?`✓ ${n} chegada(s) sincronizada(s) da Portaria.`:"Nenhuma chegada nova registrada na Portaria."})
+    }catch(e){ setSync({busy:false,msg:"Não foi possível consultar a Portaria agora."}) }
+  }
+  useEffect(()=>{ sincronizar(true) },[])
   return(
     <div>
-      <div className="bg-white rounded-xl p-3 shadow-sm mb-4 text-xs flex items-center gap-2" style={{color:C.gray}}><Lock size={14} color={C.orange}/> A portaria libera a entrada assim que o <b style={{color:C.navy}}>&nbsp;agendamento está confirmado</b>.</div>
+      <div className="bg-white rounded-xl p-3 shadow-sm mb-4 text-xs flex items-center gap-2 flex-wrap" style={{color:C.gray}}>
+        <Lock size={14} color={C.orange}/> A portaria libera a entrada assim que o <b style={{color:C.navy}}>&nbsp;agendamento está confirmado</b>.
+        <button onClick={()=>sincronizar(false)} disabled={sync.busy} className="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5" style={{background:C.navy2+"15",color:C.navy2}}><RotateCcw size={13} className={sync.busy?"animate-spin":""}/> Atualizar chegadas da Portaria</button>
+        {sync.msg&&<span className="w-full mt-1 font-semibold" style={{color:C.navy2}}>{sync.msg}</span>}
+      </div>
       <div className="space-y-2">{fila.length===0&&<div className="bg-white rounded-xl p-6 text-center text-sm shadow-sm" style={{color:C.gray}}>Nenhum veículo previsto no momento.</div>}{fila.map(b=><PortariaCard key={b.id} b={b} updB={updB}/>)}</div>
     </div>
   )
