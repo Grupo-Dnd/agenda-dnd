@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react"
 import { supabase } from './supabaseClient'
-import { createClient } from '@supabase/supabase-js'
 import capaBg from './capa.jpg'
-
-// 2º Supabase (somente leitura) — Portaria/Recebimento/pedidos (projeto "exub"), mesmo padrão do Recebimento.
-const sbPort = createClient(
-  "https://exubsoqdtkgklicdwitv.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4dWJzb3FkdGtna2xpY2R3aXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTk3NDgsImV4cCI6MjA5NTQ3NTc0OH0.eXGRABGCVW8GYSXJidQE3XtMu-PYFPTKDaBsJTTp6vs",
-  { auth: { persistSession: false } }
-)
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, CartesianGrid } from "recharts"
 import { Truck, Clock, CheckCircle2, XCircle, AlertTriangle, Send, ChevronLeft, ChevronRight, Building2, Phone, FileText, RotateCcw, BarChart3, Beaker, Wheat, Boxes, Hash, ClipboardCheck, Lock, MapPin, LogIn, LogOut, Flag, Scale, Paperclip, Search, Activity, ShieldCheck, Weight, TrendingUp, Target, Package, Mail, Eye, EyeOff, Users, KeyRound, Plus, Power } from "lucide-react"
 
@@ -717,13 +709,13 @@ function Portaria({bookings,updB}){
     try{
       const norm=p=>(p||"").toUpperCase().replace(/[^A-Z0-9]/g,"")
       const datas=[...new Set(ativos.map(b=>b.data))]
-      const{data,error}=await sbPort.from("vw_portaria_liberados").select("veiculo_placa,data_entrada,hora_entrada").in("data_entrada",datas).not("veiculo_placa","is",null)
+      const{data,error}=await supabase.functions.invoke("bridge_exub",{body:{acao:"portaria_chegadas",datas}})
       if(error)throw error
-      const idx={};(data||[]).forEach(r=>{ idx[norm(r.veiculo_placa)+"|"+r.data_entrada]=r })
+      const idx={};(data?.chegadas||[]).forEach(r=>{ idx[norm(r.placa)+"|"+r.data]=r })
       let n=0
       for(const b of ativos){
         const r=idx[norm(b.placa)+"|"+b.data]
-        if(r&&r.hora_entrada&&!b.chegadaReal){ const hm=String(r.hora_entrada).slice(0,5); await updB(b.id,{status:"em_patio",chegadaReal:hm,entrada:hm}); n++ }
+        if(r&&r.hora&&!b.chegadaReal){ await updB(b.id,{status:"em_patio",chegadaReal:r.hora,entrada:r.hora}); n++ }
       }
       setSync({busy:false,msg:n?`✓ ${n} chegada(s) sincronizada(s) da Portaria.`:"Nenhuma chegada nova registrada na Portaria."})
     }catch(e){ setSync({busy:false,msg:"Não foi possível consultar a Portaria agora."}) }
